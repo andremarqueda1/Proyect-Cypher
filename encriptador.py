@@ -1,5 +1,9 @@
 import numpy as np
-alfabeto_hill_equivnum = { #Declaramos el alfabeto a utilizar en el cifrado de hill
+
+def matrix_cofactor(matrix):
+    return np.linalg.inv(matrix).T * np.linalg.det(matrix)
+
+alfabeto_hill_equivnum = { #Declaramos el diccionario  a utilizar en el cifrado de hill
     'A' : 0,
     'B' : 1,
     'C' : 2,
@@ -28,7 +32,7 @@ alfabeto_hill_equivnum = { #Declaramos el alfabeto a utilizar en el cifrado de h
     'Z' : 25
     }
 
-alfabeto_hill_num_a_texto= { #Declaramos el alfabeto a utilizar en el cifrado de hill
+alfabeto_hill_num_a_texto= { #Declaramos el alfabeto a utilizar en el descifrado de hill
      0 : 'A',
      1 : 'B',
      2 : 'C',
@@ -57,43 +61,52 @@ alfabeto_hill_num_a_texto= { #Declaramos el alfabeto a utilizar en el cifrado de
     25 : 'Z'
     } 
 
+print("Leyendo archivo....\n")
 f=open("texto a cifrar.txt","r") #leemos el archivo
 entrada_archivo_texto=f.read()   #almacenamos en memoria el texto
 texto_a_cifrar=entrada_archivo_texto.upper() #Lo convertimos a mayúsculas para poderlo manipular satisfactoriamente
+print("Texto a cifrar: ",texto_a_cifrar)
 equiv_num_mensaje=[] #Declaramos la variable que almacenará los equivalentes numéricos del mensaje
+mensaje_segmentado=[]
 for letra in texto_a_cifrar:
     equiv_num_mensaje.append(alfabeto_hill_equivnum[letra]) #Convertimos cada letra del mensaje a su Equivalente numérico
 
-m1=np.array(equiv_num_mensaje[0:]) #Partimos a la mitad y tomamos el primer segmento
-#m2=np.array(equiv_num_mensaje[len(equiv_num_mensaje)//2:]) #Tomamos el segundo segmento 
+for i in range (len(equiv_num_mensaje)): #Debido a que la clave es una matriz de 3X3 , segmentamos
+    i=i*3 #el mensaje en trigramas (vectores individuales de cardinalidad de grado 3)
+    mensaje_segmentado.append(equiv_num_mensaje[i:i+3]) #Tomamos 3 elementos y 
+    if i+3>len(equiv_num_mensaje): # y posteriormente tres elementos
+        break
+    #Debido a que la matriz debe contener forzozamente tres elementos por vector
+    #Es necesario acompletar (en caso de ser necesario) el vector con menos de tres elementos
+while len(mensaje_segmentado[len(mensaje_segmentado)-1])<3 and len(mensaje_segmentado[len(mensaje_segmentado)-1])>0 :
+    mensaje_segmentado[len(mensaje_segmentado)-1].append(24) #Donde 24 es el equivalente numérico de 'X'
+
+if mensaje_segmentado[len(mensaje_segmentado)-1]==[] :
+    mensaje_segmentado.pop()
+    
 
 clave_k=np.array([[6,24,1],[13,16,10],[20,17,15]])
+km=[]
+for i in range (len(mensaje_segmentado)):    
+    km.append(np.round(np.dot(clave_k,mensaje_segmentado[i]))%26)
 
-determinant=int(np.round_(np.linalg.det(clave_k)))
-km1=np.dot(clave_k,m1)%26
-#km2=np.dot(clave_k,m2)%27
-
+"""
 Cripto=""
 
-for equiv_num in km1:
+for equiv_num in km:
     Cripto=Cripto+alfabeto_hill_num_a_texto[equiv_num]
     
-
-#for equiv_num in km2:
-#    Cripto=Cripto+alfabeto_hill_num_a_texto[equiv_num]
-    
-
 print ("El mensaje cifrado es:",Cripto)
-
-
+determinant=int(np.round_(np.linalg.det(clave_k)))
+determinantmod=determinant%26
+m_cofactores=matrix_cofactor(clave_k)
+m_cofactores_trans=m_cofactores.transpose()
+claveinversa=(determinantmod*m_cofactores_trans)%26
 print ("Descifrando el mensaje")
-
-
-determinante=np.linalg.det(clave_k)
-determinanteMod=determinante%27
-determinante_inv=(26+1)/determinanteMod
-clave_inv= np.transpose(clave_k)
-detInv=1/determinante
-
-inv_clav=np.dot(detInv,clave_inv)
-
+descipher=np.round(np.dot(claveinversa,km))%26
+descifrado=""
+for elem in descipher:
+    descifrado=descifrado+alfabeto_hill_num_a_texto[elem]
+    
+print ("El texto descifrado es:", descifrado)
+"""

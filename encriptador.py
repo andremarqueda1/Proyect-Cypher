@@ -61,6 +61,11 @@ alfabeto_hill_num_a_texto= { #Declaramos el alfabeto a utilizar en el descifrado
     25 : 'Z'
     } 
 
+"""
+#######################################
+CIFRADO DEL MENSAJE (ALGORITMO DE HILL)
+#######################################
+"""
 print("Leyendo archivo....\n")
 f=open("texto a cifrar.txt","r") #leemos el archivo
 entrada_archivo_texto=f.read()   #almacenamos en memoria el texto
@@ -79,34 +84,52 @@ for i in range (len(equiv_num_mensaje)): #Debido a que la clave es una matriz de
     #Debido a que la matriz debe contener forzozamente tres elementos por vector
     #Es necesario acompletar (en caso de ser necesario) el vector con menos de tres elementos
 while len(mensaje_segmentado[len(mensaje_segmentado)-1])<3 and len(mensaje_segmentado[len(mensaje_segmentado)-1])>0 :
-    mensaje_segmentado[len(mensaje_segmentado)-1].append(24) #Donde 24 es el equivalente numérico de 'X'
+    mensaje_segmentado[len(mensaje_segmentado)-1].append(23) #Donde 23 es el equivalente numérico de 'X'
 
 if mensaje_segmentado[len(mensaje_segmentado)-1]==[] :
     mensaje_segmentado.pop()
     
-
 clave_k=np.array([[6,24,1],[13,16,10],[20,17,15]])
+
 km=[]
-for i in range (len(mensaje_segmentado)):    
-    km.append(np.round(np.dot(clave_k,mensaje_segmentado[i]))%26)
+for i in range (len(mensaje_segmentado)):    #Realizamos la multiplicación
+    km.append(np.round(np.dot(clave_k,mensaje_segmentado[i]))%26)  #y almacenamos el resultado
 
-"""
-Cripto=""
+cifrado_EquivNum=[] #Declaramos la variable que almacenará como vector  
+for lst in km: #El resultado concatenado de todas las multiplicaciónes
+    for j in range(len(lst)): #De los trigramas por la clave
+        cifrado_EquivNum.append(lst[j])
+cifrado_texto_hill=""
 
-for equiv_num in km:
-    Cripto=Cripto+alfabeto_hill_num_a_texto[equiv_num]
+for i in range(len(cifrado_EquivNum)): #Regresamos a su análogo textual y concatenamos el mensaje
+    cifrado_texto_hill=cifrado_texto_hill+alfabeto_hill_num_a_texto[cifrado_EquivNum[i]] 
     
-print ("El mensaje cifrado es:",Cripto)
+print("El mensaje cifrado es: ",cifrado_texto_hill)
+    
+"""
+#######################################
+DECIFRADO DEL MENSAJE (ALGORITMO DE HILL)
+#######################################
+"""
+print ("***Descifrando el mensaje***")
+
 determinant=int(np.round_(np.linalg.det(clave_k)))
 determinantmod=determinant%26
 m_cofactores=matrix_cofactor(clave_k)
 m_cofactores_trans=m_cofactores.transpose()
 claveinversa=(determinantmod*m_cofactores_trans)%26
-print ("Descifrando el mensaje")
-descipher=np.round(np.dot(claveinversa,km))%26
-descifrado=""
-for elem in descipher:
-    descifrado=descifrado+alfabeto_hill_num_a_texto[elem]
-    
-print ("El texto descifrado es:", descifrado)
-"""
+
+descipher_vec=[] #Descipher_vec mantendrá los vectores individuales multiplicados por la inversa
+for i in range (len(km)): #de la clave K por cada uno de los trigramas 
+    descipher_vec.append(np.round(np.dot(claveinversa,km[i]))%26)
+
+descipher_vec_unitario=[]
+for lst in descipher_vec: #El resultado concatenado de todas las multiplicaciónes
+    for j in range(len(lst)): #De los trigramas por la clave
+        descipher_vec_unitario.append(lst[j])
+
+descifrado_hill_texto=""
+for i in range (len(descipher_vec_unitario)):
+    descifrado_hill_texto=descifrado_hill_texto+alfabeto_hill_num_a_texto[descipher_vec_unitario[i]]
+
+print("El texto descifrado es: ",descifrado_hill_texto)
